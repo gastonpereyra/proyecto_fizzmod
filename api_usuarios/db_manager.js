@@ -1,6 +1,7 @@
 const {getFecha} = require('../opciones');
 
 module.exports = {
+    // Conectar e Inicializar la Base de Datos
     conectar : function (connection) {
         // Hago un query de prueba para ver si se conecto
         connection.query('SELECT 1', function (error) {
@@ -46,7 +47,7 @@ module.exports = {
                     }
                 })
                 // Tabla de Usuarios
-                connection.query('CREATE TABLE IF NOT EXISTS `usuarios` ( `id_usuario` TINYINT UNSIGNED AUTO_INCREMENT NOT NULL UNIQUE, `nombre_usuario` VARCHAR(50) NOT NULL UNIQUE, `nombre` VARCHAR(50) NOT NULL, `apellido` VARCHAR(50) NOT NULL, `email` VARCHAR(60) NOT NULL UNIQUE, `creado_en` DATETIME NOT NULL,`actualizo_en` DATETIME NOT NULL, `id_status` TINYINT NOT NULL DEFAULT 0, PRIMARY KEY(id_usuario), FOREIGN KEY(id_status) REFERENCES `status_usuarios`(id_status));', (error, results, fields) => {
+                connection.query('CREATE TABLE IF NOT EXISTS `usuarios` ( `id_usuario` TINYINT UNSIGNED AUTO_INCREMENT NOT NULL UNIQUE, `nombre_usuario` VARCHAR(50) NOT NULL UNIQUE, `nombre` VARCHAR(50) NOT NULL, `apellido` VARCHAR(50) NOT NULL, `email` VARCHAR(60) NOT NULL UNIQUE, `creado_en` DATETIME NOT NULL DEFAULT NOW(), `actualizo_en` DATETIME NOT NULL DEFAULT NOW() ON UPDATE NOW(), `id_status` TINYINT NOT NULL DEFAULT 0, PRIMARY KEY(id_usuario), FOREIGN KEY(id_status) REFERENCES `status_usuarios`(id_status));', (error, results, fields) => {
                     fecha = getFecha();
                     if (error) console.error(`* Base de Datos | ${fecha.dia} | ${fecha.hora} | Error Tabla Usuaruios - ${error.message}`);
                     else {
@@ -55,5 +56,58 @@ module.exports = {
                 })
             }
         })
+    },
+    // BUSQUEDA de usuario
+    // TODOS
+    buscarTodos: function(connection) {
+        return new Promise((res,err) => {
+            console.log('BUSCAR TODOS');
+            res({ usuarios: 'BUSCAR TODOS'.split('')});
+        })
+    },
+    // TODOS los que tenga Status determinado
+    buscarPorStatus: function(connection, status) {
+        return new Promise((res,err) => {
+            if (status) {
+                console.log(`BUSCAR ${status}`);
+                res({ usuarios: 'BUSCAR TODOS'.split('')});
+            } else err("ERROR")
+        })
+    },
+    // UNO por ID
+    buscarPorId: function(connection, id) {
+        return new Promise((res,err) => {
+            if (id) {
+                console.log(`BUSCAR ${id}`);
+                res({ usuario: {id}});
+            } else err("ERROR")
+        })
+        
+    },
+    // CREA un usuario
+    crear: function(connection, data) {
+        return new Promise((res,err) => {
+            console.log('CREA UN USUARIO');
+            res({usuario: "CReado"});
+        })
+    },
+    // ACTUALIZA el usuario con ID
+    actualizar: function(connection, id, data) {
+        return new Promise((res,err) => {
+            if (id) {
+                console.log(`ACTUALIZA USUARIO ${id}`);
+                res({ usuario: {id}});
+            } else err("ERROR")
+        })
+    },
+    // Cambia el estado de un usuario
+    cambiarStatus: function(connection, id) {
+        return new Promise((res,err) => {
+            if (id) {
+                console.log(`USUARIO ${id} CAMBIA DE ESTADO`);
+                res({ usuario: {id}});
+            } else err("ERROR")
+        })
+        
     }
 }
