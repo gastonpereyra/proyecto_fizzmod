@@ -1,14 +1,12 @@
 // Modulos
 const http = require('http');
+const mysql = require('mysql');
+const db = require('./api_mensajes/db_manager');
 const {server_host, server_api_mensajes_port, database_mysql, getFecha} = require('./opciones');
 
+// Conectar con Base de Datos
 const connection = mysql.createConnection(database_mysql);
-// conectar
-connection.query('SELECT 1', function (error, results, fields) {
-    const fecha = getFecha();
-    if (error) console.error(`* Base de Datos | ${fecha.dia} | ${fecha.hora} | Error - ${err.message}`);
-    else console.log(`* Base de Datos | ${fecha.dia} | ${fecha.hora} | Conectada *`)
-  })
+db.conectar(connection);
 
 // Crear Server
 const server_api_mensajes = http.createServer((req,res) => {
