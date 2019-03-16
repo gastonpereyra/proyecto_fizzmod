@@ -81,3 +81,5 @@ Cada tabla tiene que contar con como mínimo las siguientes columnas :
 * El servidor de WebSocket deberá ser capaz de detectar cuando un socket se desconecta, para así notificarle al cliente su estado actual y reflejar esta información en. Navegador 
 
 * El formulario de registro deberá poder, además de registrar un usuario nuevo, editar el usuario registrado, es decir el que se encuentra conectado en ese momento a la aplicación, capturar los datos y enviarlos al servidor Web para posterior proceso en la base de datos correspondiente 
+
+- - - -
