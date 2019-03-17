@@ -28,5 +28,4 @@ io.on('connection', function(socket){
         console.log(`WEB-SOCKET | ${fecha.dia} | ${fecha.hora}  | Un usuario se desconecto`);
       });
   });
-  
 
