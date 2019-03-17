@@ -2,6 +2,7 @@
 const http = require('http');
 const mysql = require('mysql');
 const db = require('./api_mensajes/db_manager');
+const router = require('./api_mensajes/router');
 const {server_host, server_api_mensajes_port, database_mysql, getFecha} = require('./opciones');
 
 // Conectar con Base de Datos
@@ -11,8 +12,8 @@ db.conectar(connection);
 // Crear Server
 const server_api_mensajes = http.createServer((req,res) => {
     const fecha = getFecha();
+    router(connection,req,res);
     console.log(`API MENSAJES | ${fecha.dia} ${fecha.hora} | HTTP/${req.httpVersion} | ${req.method} | '${req.url}' `);
-    res.end("SERVER - REST API : MENSAJES");
 });
 
 // Conectar Server y ponerlo a "escuchar"
