@@ -4,7 +4,10 @@
   "description": "Una aplicación de chat en tiempo real ",
   "main": "server_web.js",
   "scripts": {
-    "start": "node server_web.js"
+    "start": "node server_api_usuarios.js & node server_api_mensajes.js & node server_web.js",
+    "server_web": "node server_web.js",
+    "server_usuarios": "node server_api_usuarios.js",
+    "server_mensajes": "node server_api_mensajes.js"
   },
   "repository": {
     "type": "git",
