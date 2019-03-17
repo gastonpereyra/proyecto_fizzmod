@@ -1,13 +1,14 @@
 // Modulos
 const http = require('http');
 const io = require('socket.io')(http);
+const router = require('./api_web/router');
 const {server_host, server_web_port, getFecha} = require('./opciones');
 
 // Crear Server
 const server_web = http.createServer((req,res) => {
     const fecha = getFecha();
     console.log(`WEB | ${fecha.dia} | ${fecha.hora} | HTTP/${req.httpVersion} | ${req.method} | '${req.url}' `);
-    res.end("SERVER - WEB + CHAT");
+    router(req,res);
 });
 
 // Conectar Server y ponerlo a "escuchar"
