@@ -49,9 +49,9 @@ module.exports = async (connection,req,res) => {
                 } else response.error = `Error No existe endpoint`;
                 break;
             case 'POST':
-                if (query.id) {
+                if (query.id && query.status>-1) {
                     try {
-                        response.data = await db.cambiarStatus(connection,query.id);
+                        response.data = await db.cambiarStatus(connection,query.id,query.status);
                     } catch (err) {
                         response.error = `Error al cambiar de estado de Usuario de ID ${query.id} : ${err}`;
                     }

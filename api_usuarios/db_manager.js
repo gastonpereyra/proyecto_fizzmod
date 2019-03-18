@@ -234,14 +234,17 @@ module.exports = {
         })
     },
     // Cambia el estado de un usuario
-    cambiarStatus: function(connection, id) {
+    cambiarStatus: function(connection, id, status=0) {
         //paso el ID a numero
         const id_usuario = parseInt(id);
+        const status_code = status.toUpperCase() === "CONECTADO" || parseInt(status) === 1 ? 1 :
+                            status.toUpperCase() === "DESCONECTADO" || parseInt(status) === 0 ? 0 :
+                            null;
         return new Promise((res,err) => {
             // Si existe la Base de datos
             if (!connection) err("No esta Conectado a una Base de Datos");
             const fecha = getFecha();
-            if (id_usuario > 0) {
+            if (id_usuario > 0 && status_code !== null) {
                 // Busco si existe el User
                 connection.query('SELECT `id_usuario`, `id_status` FROM `usuarios` WHERE `id_usuario` = ?', 
                     [id_usuario], (error,results) => {
@@ -254,14 +257,14 @@ module.exports = {
                             if (results[0]) {
                                 connection.query('UPDATE `usuarios` SET `id_status` = ? WHERE `id_usuario` = ?', 
                                     // Cambio el status por el contrario
-                                    [results[0].id_status === 1 ? 0 : 1, id_usuario], (error,results_2) => {
+                                    [status_code, id_usuario], (error,results_2) => {
                                         // Si hay error
                                         if (error) {
                                             console.error(`* Base de Datos | ${fecha.dia} | ${fecha.hora} | Error al Cambiar Status de Usuario - ${error.message}`);
                                             err(`${error.message}`);
                                         } else if (results_2.affectedRows > 0) { // si hubo cambios
                                             // Formo el objeto a devolver
-                                            const usuario = {id_usuario, status: results[0].id_status === 1 ? "DESCONECTADO" : "CONECTADO"}
+                                            const usuario = {id_usuario, status: status_code === 0 ? "DESCONECTADO" : "CONECTADO"}
                                             console.log(`* Base de Datos | ${fecha.dia} | ${fecha.hora} | Cambiar Status de Usuario ID ${id} por ${usuario.status} - OK`);
                                             res({usuario});
                                         } else { // Si no hubo cambios
