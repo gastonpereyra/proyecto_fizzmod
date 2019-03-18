@@ -82,8 +82,7 @@ module.exports = {
     // TODOS los que Mensajes desde una fecha
     buscarDesde: function(connection, dia="2019-01-01", hora="00:00:00") {
         // armo el DATETIME
-        const fecha_desde = `${dia} ${hora}`;
-
+        const fecha_desde = `${dia}T${hora}.000Z`;
         return new Promise((res,err) => {
             // Si existe la Base de datos
             if (!connection) err("No esta Conectado a una Base de Datos");
@@ -93,7 +92,7 @@ module.exports = {
                 err('Fecha Invalida')
             } else {
                 // Busco en la base de datos
-                connection.query('SELECT m.`id_mensaje`, m.`cuerpo`, m.`id_usuario`, m.`creado_en`, m.`actualizo_en`, s.`descripcion` AS "status" FROM `mensajes` m JOIN `status_mensajes` s ON s.id_status = m.id_status WHERE m.`creado_en` > ?;', [fecha_desde],
+                connection.query('SELECT m.`id_mensaje`, m.`cuerpo`, m.`id_usuario`, m.`creado_en`, m.`actualizo_en`, s.`descripcion` AS "status" FROM `mensajes` m JOIN `status_mensajes` s ON s.id_status = m.id_status WHERE m.`creado_en` >= ?;', [new Date(fecha_desde)],
                     (error, results) => {
                         // si hay error, imprime mensaje en la consola y elevo el error
                         if (error) {
