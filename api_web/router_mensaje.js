@@ -38,8 +38,8 @@ module.exports = async (req,res) => {
                     response = await info_raw.json();
 
                 } else if (query.dia && query.hora) {
-                    
-                    info_raw = await fetch(`${mess_url}dia=${query.id}&hora=${query.hora}`);
+
+                    info_raw = await fetch(`${mess_url}?dia=${query.dia}&hora=${query.hora}`);
                     response = await info_raw.json(); 
 
                 } else if (Object.keys(query).length === 0) {

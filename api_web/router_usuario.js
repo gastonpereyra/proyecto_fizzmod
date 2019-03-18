@@ -36,6 +36,11 @@ module.exports = async (req, res) => {
                     info_raw = await fetch(`${user_url}?id=${query.id}`);
                     response = await info_raw.json();
 
+                } else if (query.status) {
+
+                    info_raw = await fetch(`${user_url}?status=${query.status}`);
+                    response = await info_raw.json();
+
                 } else if (Object.keys(query).length === 0) {
 
                     info_raw = await fetch(user_url);
@@ -44,9 +49,9 @@ module.exports = async (req, res) => {
                 } else response.error = `Error No existe endpoint`;
                 break;
             case 'POST':
-                if (query.id) {
+                if (query.id & query.status>-1) {
                     
-                    info_raw = await fetch(`${user_url}?id=${query.id}`,{ method: 'POST'});
+                    info_raw = await fetch(`${user_url}?id=${query.id}&status=${query.status}`,{ method: 'POST'});
                     response = await info_raw.json(); 
 
                 } else if (Object.keys(query).length === 0) {

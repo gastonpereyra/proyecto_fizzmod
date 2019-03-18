@@ -12,10 +12,9 @@
     <script defer src="https://use.fontawesome.com/releases/v5.3.1/js/all.js"></script>
     <!-- Vue.js Dev-->
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
-    <!-- Componentes
+    <!-- Componentes -->
     <script src="header.js" defer></script>
-    -->
-    <!-- <script src="root.js" defer></script> -->
+    <script src="chatBox.js" defer></script>
     
   </head>  
   <body>
@@ -28,11 +27,12 @@
       <div class="hero-body" id="main">
         <div class="container">
           <h1 class="title is-1">
-            API
+            Proyecto Fizzmod
           </h1>
           <h2 class="subtitle is-2">
-            Trabajo Práctico Para Fizzmod en Eduación IT
+            Chat en Tiempo Real ?
           </h2>
+          <div id="chatBox"></div>
         </div>
       </div>
       <!-- Creditos y links -->
@@ -73,12 +73,5 @@
         </div>
       </div>
     </section>
-    <script>
-        fetch('http://localhost:8000/usuario').
-            then(res => res.json())
-            .then(data => console.log(data))
-            .catch(err => console.error(err));
-        
-    </script>
   </body>
 </html>
