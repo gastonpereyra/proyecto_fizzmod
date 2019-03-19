@@ -75,7 +75,7 @@ const SignInCard= new Vue({
                 this.notificacion_mensaje = `Se intento ingresar al sistema pero hubo el siguiente error: ${error}`;
                 this.activarNotificacion();
             } else {
-                localStorage.setItem('id_usuario',data.usuario.id_usuario);
+                localStorage.setItem('id_usuario',data.usuario.id);
                 localStorage.setItem('usuario',data.usuario.nombre_usuario);
                 this.isError= false;
                 this.notificacion_mensaje = `Bienvenido ${data.usuario.nombre} ${data.usuario.apellido}!!`;
