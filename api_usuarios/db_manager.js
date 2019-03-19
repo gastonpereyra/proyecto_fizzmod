@@ -8,7 +8,7 @@ module.exports = {
             let fecha = getFecha();
             // si se produce un error
             if (error) 
-                console.error(`* Base de Datos | ${fecha.dia} | ${fecha.hora} | Error - ${err.message}`);
+                console.error(`* Base de Datos | ${fecha.dia} | ${fecha.hora} | Error - ${error.message}`);
             // si se conecto
             else {
                 console.log(`* Base de Datos | ${fecha.dia} | ${fecha.hora} | Conectada *`);

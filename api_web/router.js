@@ -18,16 +18,6 @@ module.exports = async (req,res) => {
             res.writeHeader(200, "OK", {"Content-Type":"text/html"} );
             fs.createReadStream(`${__dirname}/public/index.html`).pipe(res);
             break;
-        /*
-        case '/aindex':
-            res.writeHeader(200, "OK", {"Content-Type":"text/html"} );
-            fs.createReadStream(`${__dirname}/public/index.html`).pipe(res);
-            break;
-        case '/registro':
-            res.writeHeader(200, "OK", {"Content-Type":"text/html"} );
-            fs.createReadStream(`${__dirname}/public/registro.html`).pipe(res);
-            break;
-        */
         default:
             const paths = pathname.split('.');
             let path = "/";

@@ -49,7 +49,7 @@ module.exports = async (req, res) => {
                 } else response.error = `Error No existe endpoint`;
                 break;
             case 'POST':
-                if (query.id & query.status>-1) {
+                if (query.id && query.status>-1) {
                     
                     info_raw = await fetch(`${user_url}?id=${query.id}&status=${query.status}`,{ method: 'POST'});
                     response = await info_raw.json(); 
