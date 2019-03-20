@@ -1,6 +1,8 @@
 const url = require('url');
 const db = require('./db_manager');
+const {getFecha} = require('../opciones');
 
+// Función para parsear objetos tipo JSON entrantes
 const body_parser = (req) => {
     return new Promise(function(res,err) {
         let buffer = [];
@@ -8,65 +10,89 @@ const body_parser = (req) => {
             buffer.push(data);
         })
         req.on('end', () => {
-            
+            if (!buffer.length)
+                err("Vacio");
             if (req.headers['content-type']==='application/json' && buffer.length) {
-                
                 res(JSON.parse(Buffer.concat(buffer)));
                 buffer = [];
             } else {
-                err("Formato Erroneo o Vacio");
+                err("Formato Erroneo");
             }
         })
     });
 };
 
+// ROUTER
 module.exports = async (connection,req,res) => {
+    const fecha = getFecha();
     const {pathname, query} = url.parse(req.url,true);
     const {method} = req;
     let response = { error: null, data: null};
-    if (pathname !== '/') response.error = `Error No existe endpoint`;
+    // SI la ruta buscada no existe tira error
+    if (pathname !== '/') response.error = `No existe endpoint`;
     else {
+        // Segun el método
         switch(method) {
             case 'GET':
+                // Obtener UN mensaje por ID
                 if (query.id) {
                     try {
                         response.data = await db.buscarPorId(connection,query.id);
+                        console.log(`[MENSAJES] - DDBB | ${fecha.dia} | ${fecha.hora} | BUSCAR MENSAJE DE ID ${query.id} - OK`);
                     } catch (err) {
-                        response.error = `Error al buscar Mensaje de ID ${query.id} : ${err}`;
+                        response.error = `No se pudo buscar Mensaje de ID ${query.id} : ${err}`;
                     }
+                // Obtener TODOS los mensajes desde UNA fecha ISO (Dia= YYYY-MM-DD, Hora= HH:MM:SS)
                 } else if (query.dia && query.hora) {
                     try {
                         response.data = await db.buscarDesde(connection,query.dia,query.hora);
+                        console.log(`[MENSAJES] - DDBB | ${fecha.dia} | ${fecha.hora} | BUSCAR TODOS LOS MENSAJES DESDE ${query.dia} A LAS ${query.hora}- OK`);
                     } catch (err) {
-                        response.error = `Error al buscar Mensajes desde ${query.dia} ${query.hora} : ${err}`;
+                        response.error = `No se pudo buscar Mensajes desde ${query.dia} a las ${query.hora} : ${err}`;
                     }
+                // Obtener TODOS los Mensajes
                 } else if (Object.keys(query).length === 0) {
                     try {
                         response.data = await db.buscarTodos(connection);
+                        console.log(`[MENSAJES] - DDBB | ${fecha.dia} | ${fecha.hora} | BUSCAR TODOS LOS MENSAJES - OK`);
                     } catch (err) {
-                        response.error = `Error al buscar Mensajes : ${err}`;
+                        response.error = `No se pudo buscar Mensajes : ${err}`;
                     }
-                } else response.error = `Error No existe endpoint`;
+                // Si usa otros endpoints, error
+                } else response.error = `No existe endpoint`;
                 break;
             case 'POST':
+                // INGRESAR un mensaje
+                if (Object.keys(query).length === 0) {
+                    try {
+                        // Parseo la info entrante
+                        const nuevo_usuario = await body_parser(req);
+                        // Se lo paso a la base de datos
+                        response.data = await db.crear(connection,nuevo_usuario);
+                        console.log(`[MENSAJES] - DDBB | ${fecha.dia} | ${fecha.hora} | Ingresar Mensaje - OK`);
+                    } catch (err) {
+                        response.error = `No se pudo crear Mensaje : ${err}`;
+                    }
+                } else response.error = `No existe endpoint`;
+                break;
+            case 'PUT' :
+                // Cambiar el STATUS de un mensaje - Solo se puede cambiar de NO LEIDO a LEIDO
                 if (query.id) {
                     try {
                         response.data = await db.cambiarStatus(connection,query.id);
+                        console.log(`[MENSAJES] - DDBB | ${fecha.dia} | ${fecha.hora} | Cambiar de STATUS a Mensaje ${query.id} - OK`);
                     } catch (err) {
-                        response.error = `Error al cambiar de estado de Mensaje de ID ${query.id} : ${err}`;
+                        response.error = `No se pudo cambiar de estado de Mensaje de ID ${query.id} : ${err}`;
                     }
-                } else if (Object.keys(query).length === 0) {
-                    try {
-                        const nuevo_usuario = await body_parser(req);
-                        response.data = await db.crear(connection,nuevo_usuario);
-                    } catch (err) {
-                        response.error = `Error al crear Mensaje : ${err}`;
-                    }
-                } else response.error = `Error No existe endpoint`;
+                } else response.error = `No existe endpoint`;
                 break;
+            // Cualquier otra peticion
             default:
-                response.error = `Error No existe endpoint`;
+                response.error = `No existe endpoint`;
         }
+    }
+    if (response.error) {
+        console.error(`[MENSAJES] - DDBB | ${fecha.dia} | ${fecha.hora} | Error : ${response.error}`);
     }
     res.writeHeader(response.error ? 404 : 200, response.error ? "Not Found" : "OK", {"Content-Type":"application/json"} );
     res.end(JSON.stringify(response));
