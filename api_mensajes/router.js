@@ -1,26 +1,7 @@
 const url = require('url');
 const db = require('./db_manager');
+const body_parser = require('../body_parser');
 const {getFecha} = require('../opciones');
-
-// Función para parsear objetos tipo JSON entrantes
-const body_parser = (req) => {
-    return new Promise(function(res,err) {
-        let buffer = [];
-        req.on('data', data => {
-            buffer.push(data);
-        })
-        req.on('end', () => {
-            if (!buffer.length)
-                err("Vacio");
-            if (req.headers['content-type']==='application/json' && buffer.length) {
-                res(JSON.parse(Buffer.concat(buffer)));
-                buffer = [];
-            } else {
-                err("Formato Erroneo");
-            }
-        })
-    });
-};
 
 // ROUTER
 module.exports = async (connection,req,res) => {
@@ -76,6 +57,7 @@ module.exports = async (connection,req,res) => {
                 } else response.error = `No existe endpoint`;
                 break;
             case 'PUT' :
+            case 'PATH' :
                 // Cambiar el STATUS de un mensaje - Solo se puede cambiar de NO LEIDO a LEIDO
                 if (query.id) {
                     try {

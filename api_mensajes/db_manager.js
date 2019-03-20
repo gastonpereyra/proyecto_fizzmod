@@ -1,32 +1,5 @@
 const mysql = require('mysql');
-
-// Ejecutar Queries como Promesas
-function ejecutarQuery( conexion, query, params=[] ) {
-    return new Promise((res,err)=> {
-        
-        conexion.query(query,params,(error,resultados) => {
-            if (error && error.message.includes('ER_DUP_ENTRY')) {
-                res({
-                    status: 300,
-                    mensaje: "Entrada Existente",
-                    conexion
-                })
-            } else if (error) {
-                err({
-                    status: 500,
-                    mensaje: error.message
-                });
-            } else {
-                res({
-                    status: 200,
-                    mensaje: `Ejecutado`,
-                    conexion,
-                    resultados
-                })
-            }
-        })
-    })
-}
+const ejecutarQuery = require('../ejecutarQuery');
 
 // Manipulación de la Base de Datos
 module.exports = {
