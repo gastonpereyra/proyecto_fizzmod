@@ -34,12 +34,6 @@ module.exports = async (connection,req,res) => {
                     } catch (err) {
                         response.error = `Error al buscar Usuario de ID ${query.id} : ${err}`;
                     }
-                } else if (query.status) {
-                    try {
-                        response.data = await db.buscarPorStatus(connection,query.status);
-                    } catch (err) {
-                        response.error = `Error al buscar Usuarios de estado ${query.status} : ${err}`;
-                    }
                 } else if (Object.keys(query).length === 0) {
                     try {
                         response.data = await db.buscarTodos(connection);
@@ -49,7 +43,7 @@ module.exports = async (connection,req,res) => {
                 } else response.error = `Error No existe endpoint`;
                 break;
             case 'POST':
-                if (query.id && query.status>-1) {
+                if (query.id && query.status) {
                     try {
                         response.data = await db.cambiarStatus(connection,query.id,query.status);
                     } catch (err) {
