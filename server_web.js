@@ -52,7 +52,6 @@ io.on('connection', function(socket){
                 })
         }
     })
-
     // cuando mandan un mensaje
     socket.on('manda_mensaje', ({status, payload}) => {
 

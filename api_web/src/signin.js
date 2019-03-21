@@ -10,10 +10,6 @@ const Notificacion = {
           <button class="delete" @click="cerrar"></button>
           <span class="is-size-3">{{ isError ? "Ups.. Hubo un Error" : "Exito!!" }}</span>
           <p class="is-size-5">{{message}}</p>
-          <span class="buttons is-centered">
-              <a href="/" class="button is-light is-large">Ir a Inicio</a>
-              <button @click="cerrar" class="button is-warning is-large">Quedarse</button>
-          </span>
         </div>
       </div>
     </div>
@@ -55,7 +51,7 @@ const SignInCard= new Vue({
       },
       ingresar: async function (e) {
         e.preventDefault();
-        const url = this.id_usuario ? `${url}?id=${this.id_usuario}` : `${url}`
+        const mUrl = this.id_usuario ? `${url}?id=${this.id_usuario}` : `${url}`
         const nuevo_usuario={
             nombre: this.nombre,
             apellido: this.apellido,
@@ -63,7 +59,7 @@ const SignInCard= new Vue({
             email: this.email
         }
         if (this.check_nombre && this.check_apellido && this.check_nombre_usuario && this.check_email) {
-            const response = await fetch(`${url}`, {
+            const response = await fetch(`${mUrl}`, {
                 method: this.id_usuario ? 'PUT' : 'POST', 
                 body: JSON.stringify(nuevo_usuario),
                 headers: {
@@ -77,9 +73,7 @@ const SignInCard= new Vue({
             } else {
                 localStorage.setItem('id_usuario',data.usuario.id_usuario);
                 localStorage.setItem('usuario',data.usuario.nombre_usuario);
-                this.isError= false;
-                this.notificacion_mensaje = `Bienvenido ${data.usuario.nombre} ${data.usuario.apellido}!!`;
-                this.activarNotificacion();
+                window.location.href = '/chat';
             }
         } else {
             this.isError = true;

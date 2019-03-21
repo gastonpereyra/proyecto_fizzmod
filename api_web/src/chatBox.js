@@ -91,7 +91,11 @@ const VerMensajes = {
     computed: {
         mensajes_ordenados: function() {
             // Como los Tweets, el mas reciente primero
-            return this.mensajes.sort( (m1, m2) => m2.creado_en > m1.creado_en);
+            return this.mensajes.sort( (m1, m2) => {
+				const fecha_1 = new Date(m1.creado_en);
+				const fecha_2 = new Date(m2.creado_en);
+				return fecha_2 > fecha_1 ? 1 : fecha_1 > fecha_2 ? -1 : 0;
+			});
         }
     },
     template: `
