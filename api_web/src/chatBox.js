@@ -57,20 +57,18 @@ const VerMensajes = {
         }
     },
     template: `
-        <div class="tile is-child box">
-            <ul>
-                <li v-for="mensaje in mensajes">
-                    <article class="message" :class="{'is-primary':id_usuario == mensaje.id_usuario, 'is-warning': id_usuario != mensaje.id_usuario}">
-                        <div class="message-header">
-                        <p>{{mensaje_nombre(mensaje.id_usuario)}}</p>
-                        </div>
-                        <div class="message-body">
-                        {{mensaje.cuerpo}}
-                        </div>
-                    </article>
-                </li>
-            </ul>
-        </div>
+        <ul>
+            <li v-for="mensaje in mensajes">
+                <article class="message" :class="{'is-primary':id_usuario == mensaje.id_usuario, 'is-warning': id_usuario != mensaje.id_usuario}">
+                    <div class="message-header">
+                    <p>{{mensaje_nombre(mensaje.id_usuario)}}</p>
+                    </div>
+                    <div class="message-body">
+                    {{mensaje.cuerpo}}
+                    </div>
+                </article>
+            </li>
+        </ul>
     `
 };
 
@@ -84,32 +82,16 @@ const InputMensaje = {
     },
     methods: {
         ingresarMensaje: async function () {
-            const contenido= {
-                id_usuario: this.id_usuario,
-                cuerpo: this.cuerpo
-            };
-            const response = await fetch(`${this.url_mensaje}`,{
-                method: 'POST',
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify(contenido)
-            });
-            const {error, data} = await response.json();
-            if (error)
-                console.error(error);
-            else {
-                this.socket.emit('manda_mensaje',{status:200, payload: {id_usuario: localStorage.getItem('id_usuario')}});
-                this.cargarMensajes();
-                this.cuerpo= "";
-            }
+
+            this.socket.emit('manda_mensaje',{status:200, payload: {id_usuario: this.id_usuario, cuerpo: this.cuerpo}});
+            this.cuerpo= "";
         }
     },
     template: `
     <article class="media">
         <figure class="media-left">
             <p class="image is-64x64">
-            <img class="is-rounded" src="https://cdn.glitch.com/project-avatar/30785e1c-ac70-40b7-bcb2-f16d91310f8d.png?1551213192496">
+            <img class="is-rounded" src="images/Fizzmod-logo.png">
             </p>
         </figure>
         <div class="media-content">
@@ -149,7 +131,7 @@ const SignInCard= new Vue({
       url_mensaje : 'http://localhost:8000/mensaje',
       cardImage: "https://cdn.glitch.com/a519acdb-09ec-474c-8f97-89d4340a2a8d%2FdesafioFizzmod.jpg?1552268149070",
       socket: null,
-      dia: '1970-01-01',
+      dia: '2019-01-01',
       hora: '00:00:00',
       id_usuario: null,
       usuario: {},
@@ -192,13 +174,13 @@ const SignInCard= new Vue({
         }
       },
       cargarMensajes: async function() {
-        const raw = await fetch(`${this.url_mensaje}?dia=${this.dia}&hora=${this.hora}`);
+        const raw = await fetch(`${this.url_mensaje}`);
         const {error, data} = await raw.json();
         if (error) {
             console.error(error);
             this.activarNotificacion(`Error al cagar los mensajes: ${error}`,true);
         } else {
-            this.mensajes = data.usuarios;
+            this.mensajes = data.mensajes;
         }
       },
       activarNotificacion: function (mensaje='',hayError=false) {
@@ -211,41 +193,47 @@ const SignInCard= new Vue({
     created () {
         // Cuando cierra la pestaña o ventana que el usuario pase a desconectado
         this.socket= io(this.url);
-        window.addEventListener('beforeunload', () => {
-            if (localStorage.getItem('id_usuario')) {
-                fetch(`${this.url_usuario}?id=${localStorage.getItem('id_usuario')}&status=-1`,{method: 'PATCH'})
-            }
-        }, false)
-    },
-    mounted: function () {
-        this.dia = new Date().toISOString().split('T')[0];
-        this.hora = new Date().toISOString().split('T')[1].split('.')[0];
-        this.estaRegistrado().then( id => {
-            if (id) {
-                fetch(`${this.url_usuario}?id=${id}&status=1`,{method: 'PATCH'})
-                    .then(res => res.json())
-                    .then(res => {
-                        // Cargar Usuario
-                        this.cargarUsuarios();
-                        // Cargar Mensajes
-                        this.cargarMensajes();
-                        this.socket.emit('entra_usuario',{status:200, payload: {id_usuario: id}});
-                    })
-                    .catch(err => this.activarNotificacion(`Error al entrar al Chat: ${err}`,true));
-            }
-        })
 
         this.socket.on('nuevo_mensaje', ({status, payload}) => {
             if (status === 200) {
-                this.cargarMensajes();
+                this.mensajes.push(payload.mensaje);
+                // this.cargarMensajes();
             }
         })
 
         this.socket.on('nuevo_usuario', ({status, payload}) => {
             if (status === 200) {
-                this.cargarUsuarios();
+                const usuario = this.usuarios.find( u => u.id_usuario == payload.id_usuario);
+                if (usuario)
+                    usuario.status = "CONECTADO"
             }
         })
+
+        this.socket.on('conecto_usuario', ({status, payload}) => {
+            if (status === 200) {
+                this.usuarios = payload.usuarios;
+            }
+        })
+
+        this.socket.on('desconecto_usuario', ({status, payload}) => {
+            if (status === 200) {
+                const usuario = this.usuarios.find( usuario => usuario.id_usuario == payload.id_usuario)
+                if (usuario)
+                    usuario.status = "DESCONECTADO"
+            }
+        })
+    },
+    mounted: function () {
+
+        this.dia = new Date().toISOString().split('T')[0];
+        this.hora = new Date().toISOString().split('T')[1].split('.')[0];
+        this.estaRegistrado().then( id => {
+            if (id) {
+                this.socket.emit('entra_usuario',{status:200, payload: {id_usuario: id}});
+            }
+        })
+
+        
     },
     computed: {
         
@@ -253,7 +241,9 @@ const SignInCard= new Vue({
     template : `
       <div class="tile is-ancestor">
         <div class="tile is-vertical is-parent is-9">
-            <VerMensajes :mensajes="mensajes" :id_usuario="id_usuario" :usuarios="usuarios"/>
+            <div class="tile is-child box">
+                <VerMensajes :mensajes="mensajes" :id_usuario="id_usuario" :usuarios="usuarios"/>
+            </div>
             <div class="tile is-child box">
                 <InputMensaje :id_usuario="id_usuario" :cargarMensajes="cargarMensajes" :socket="socket" />
             </div>
