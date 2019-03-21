@@ -75,7 +75,7 @@ const VerMensajes = {
 };
 
 const InputMensaje = {
-    props: ['id_usuario','cargarMensajes'],
+    props: ['id_usuario','cargarMensajes','socket'],
     data: function() {
         return ({
             cuerpo: "",
@@ -99,6 +99,7 @@ const InputMensaje = {
             if (error)
                 console.error(error);
             else {
+                this.socket.emit('manda_mensaje',{status:200, payload: {id_usuario: localStorage.getItem('id_usuario')}});
                 this.cargarMensajes();
                 this.cuerpo= "";
             }
@@ -143,9 +144,11 @@ const SignInCard= new Vue({
         InputMensaje
     },
     data: {
+      url: 'http://localhost:8000/',
       url_usuario : 'http://localhost:8000/usuario',
       url_mensaje : 'http://localhost:8000/mensaje',
       cardImage: "https://cdn.glitch.com/a519acdb-09ec-474c-8f97-89d4340a2a8d%2FdesafioFizzmod.jpg?1552268149070",
+      socket: null,
       dia: '1970-01-01',
       hora: '00:00:00',
       id_usuario: null,
@@ -158,7 +161,7 @@ const SignInCard= new Vue({
     },
     methods: {
       estaRegistrado: async function () {
-        const id = localStorage.getItem('id_usuario');
+        let id = localStorage.getItem('id_usuario');
         if (id) {
             const response = await fetch(`${this.url_usuario}?id=${id}`)
             const {error, data} = await response.json();
@@ -166,11 +169,12 @@ const SignInCard= new Vue({
                 console.error(error);
                 this.id_usuario= null;
                 this.usuario= {};
+                id= null;
                 localStorage.removeItem('id_usuario');
                 localStorage.removeItem('usuario');
                 this.activarNotificacion(`Problema con el usuario registrado: ${error}.`,true);
             } else {
-                this.id_usuario = id;
+                this.id_usuario = data.usuario.id_usuario;
                 this.usuario = data.usuario;
                 this.activarNotificacion(`${this.usuario.nombre} ${this.usuario.apellido} ha ingresado como ${this.usuario.nombre_usuario}`);
             }
@@ -206,10 +210,10 @@ const SignInCard= new Vue({
     },
     created () {
         // Cuando cierra la pestaña o ventana que el usuario pase a desconectado
-        
+        this.socket= io(this.url);
         window.addEventListener('beforeunload', () => {
             if (localStorage.getItem('id_usuario')) {
-                fetch(`${this.url_usuario}?id=${localStorage.getItem('id_usuario')}&status=0`,{method: 'POST'})
+                fetch(`${this.url_usuario}?id=${localStorage.getItem('id_usuario')}&status=-1`,{method: 'PATCH'})
             }
         }, false)
     },
@@ -218,11 +222,28 @@ const SignInCard= new Vue({
         this.hora = new Date().toISOString().split('T')[1].split('.')[0];
         this.estaRegistrado().then( id => {
             if (id) {
-                fetch(`${this.url_usuario}?id=${this.id_usuario}&status=1`,{method: 'POST'})
-                // Cargar Usuario
-                this.cargarUsuarios();
-                // Cargar Mensajes
+                fetch(`${this.url_usuario}?id=${id}&status=1`,{method: 'PATCH'})
+                    .then(res => res.json())
+                    .then(res => {
+                        // Cargar Usuario
+                        this.cargarUsuarios();
+                        // Cargar Mensajes
+                        this.cargarMensajes();
+                        this.socket.emit('entra_usuario',{status:200, payload: {id_usuario: id}});
+                    })
+                    .catch(err => this.activarNotificacion(`Error al entrar al Chat: ${err}`,true));
+            }
+        })
+
+        this.socket.on('nuevo_mensaje', ({status, payload}) => {
+            if (status === 200) {
                 this.cargarMensajes();
+            }
+        })
+
+        this.socket.on('nuevo_usuario', ({status, payload}) => {
+            if (status === 200) {
+                this.cargarUsuarios();
             }
         })
     },
@@ -234,7 +255,7 @@ const SignInCard= new Vue({
         <div class="tile is-vertical is-parent is-9">
             <VerMensajes :mensajes="mensajes" :id_usuario="id_usuario" :usuarios="usuarios"/>
             <div class="tile is-child box">
-                <InputMensaje :id_usuario="id_usuario" :cargarMensajes="cargarMensajes" />
+                <InputMensaje :id_usuario="id_usuario" :cargarMensajes="cargarMensajes" :socket="socket" />
             </div>
         </div>
         <div class="tile is-3">

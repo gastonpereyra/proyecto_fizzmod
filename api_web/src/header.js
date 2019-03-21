@@ -1,5 +1,3 @@
-//const url = 'https://node-fizzmod-api.glitch.me/'
-
 const header = new Vue({
     el: "#Header",
     data: {

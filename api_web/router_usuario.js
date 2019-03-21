@@ -51,7 +51,7 @@ module.exports = async (req, res) => {
             case 'PATCH':
                 if (query.id && query.status) {
                     try {    
-                        info_raw = await fetch(`${user_url}?id=${query.id}&status=${query.status}`,{ method: 'PATH'});
+                        info_raw = await fetch(`${user_url}?id=${query.id}&status=${query.status}`,{ method: 'PATCH'});
                         response = await info_raw.json(); 
                     } catch(err) {
                         response.error = err.message;

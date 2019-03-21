@@ -21,11 +21,32 @@ server_web.listen(server_web_port, server_host, () => {
 
 io.on('connection', function(socket){
     const fecha = getFecha();
-    // Log cuando se conecta alguien
-    console.log(`[WEB] - SOCKET | ${fecha.dia} | ${fecha.hora}  | Un usuario se conecto`);
-    // Log cuando se desconecta alguien
+    // Log un cliente entra pero no esta logeado
+    console.log(`[WEB] SOCKET | ${fecha.dia} | ${fecha.hora}  | Un cliente entro`);
+
+    // Cuando se logea
+    socket.on('entra_usuario', ({status, payload}) => {
+        if (status === 200) {
+            console.log(`[WEB] SOCKET | ${fecha.dia} | ${fecha.hora}  | Usuario ${payload.id_usuario} se conecto`);
+            // aviso a los clientes que refresquen su listado de usuarios
+            socket.broadcast.emit('nuevo_usuario',{status: 200, payload: {usuarios: true}});
+        }
+    })
+
+    // cuando mandan un mensaje
+    socket.on('manda_mensaje', ({status, payload}) => {
+        if (status === 200) {
+            console.log(`[WEB] SOCKET | ${fecha.dia} | ${fecha.hora}  | Usuario ${payload.id_usuario} manda un mensaje`);
+            // aviso a los clientes que refresquen los mensajes
+            socket.broadcast.emit('nuevo_mensaje',{status: 200, payload: {mensajes: true}});
+        }
+    })
+    // cuando se desconecta alguien
     socket.on('disconnect', function(){
-        console.log(`[WEB] - SOCKET | ${fecha.dia} | ${fecha.hora}  | Un usuario se desconecto`);
+        console.log(`[WEB] SOCKET | ${fecha.dia} | ${fecha.hora}  | Un usuario se desconecto`);
+        // aviso a los clientes que refresquen su listado de usuarios
+        socket.broadcast.emit('nuevo_usuario',{status: 200, payload: {usuarios: true}});
       });
   });
 
+  
