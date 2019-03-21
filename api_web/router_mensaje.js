@@ -1,27 +1,9 @@
 const url = require('url');
 const fetch = require('node-fetch');
+const body_parser = require('../body_parser');
 
 const user_url = 'http://localhost:8080';
 const mess_url = 'http://localhost:9090';
-
-const body_parser = (req) => {
-    return new Promise(function(res,err) {
-        let buffer = [];
-        req.on('data', data => {
-            buffer.push(data);
-        })
-        req.on('end', () => {
-            
-            if (req.headers['content-type']==='application/json' && buffer.length) {
-                
-                res(JSON.parse(Buffer.concat(buffer)));
-                buffer = [];
-            } else {
-                err("Formato Erroneo o Vacio");
-            }
-        })
-    });
-};
 
 module.exports = async (req,res) => {
     const {query} = url.parse(req.url,true);
@@ -33,29 +15,30 @@ module.exports = async (req,res) => {
         switch(method) {
             case 'GET':
                 if (query.id) {
-
-                    info_raw = await fetch(`${mess_url}?id=${query.id}`);
-                    response = await info_raw.json();
-
+                    try {
+                        info_raw = await fetch(`${mess_url}?id=${query.id}`);
+                        response = await info_raw.json();
+                    } catch(err) {
+                        response.error = err.message;
+                    }
                 } else if (query.dia && query.hora) {
-
-                    info_raw = await fetch(`${mess_url}?dia=${query.dia}&hora=${query.hora}`);
-                    response = await info_raw.json(); 
-
+                    try {
+                        info_raw = await fetch(`${mess_url}?dia=${query.dia}&hora=${query.hora}`);
+                        response = await info_raw.json(); 
+                    } catch(err) {
+                        response.error = err.message;
+                    }
                 } else if (Object.keys(query).length === 0) {
-                    
-                    info_raw = await fetch(mess_url);
-                    response = await info_raw.json();
-
+                    try {
+                        info_raw = await fetch(mess_url);
+                        response = await info_raw.json();
+                    } catch(err) {
+                        response.error = err.message;
+                    }
                 } else response.error = `Error No existe endpoint`;
                 break;
             case 'POST':
-                if (query.id) {
-
-                    info_raw = await fetch(`${mess_url}?id=${query.id}`,{ method: 'POST'});
-                    response = await info_raw.json(); 
-
-                } else if (Object.keys(query).length === 0) {
+                if (Object.keys(query).length === 0) {
                     try {
                         const nuevo_mensaje = await body_parser(req);
                         info_raw = await fetch(mess_url,{ 
@@ -68,6 +51,17 @@ module.exports = async (req,res) => {
                     } catch(err) {
                         response.error = err.message;
                     }
+                } else response.error = `Error No existe endpoint`;
+                break;
+            case 'PUT':
+            case 'PATCH':
+                if (query.id) {
+                    try {
+                        info_raw = await fetch(`${mess_url}?id=${query.id}`,{ method: 'PATCH'});
+                        response = await info_raw.json(); 
+                    } catch(err) {
+                        response.error = err.message;
+                    }   
                 } else response.error = `Error No existe endpoint`;
                 break;
             default:
