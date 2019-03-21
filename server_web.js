@@ -70,6 +70,9 @@ io.on('connection', function(socket){
                   }})
             // Si lo respuesta es afirmativa
             .then( response => response.json())
+            // Busco todos los datos del mensaje ingresado
+            .then( ({data}) => fetch(`${mess_url}?id=${data.mensaje.id_mensaje}`))
+            .then( response => response.json())
             .then( ({data})=> {
                     // Obtengo la info del servidor
                     const { mensaje } = data;

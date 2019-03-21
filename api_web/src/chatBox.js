@@ -1,3 +1,5 @@
+const url= 'http://localhost:8000';
+
 const Notificacion = {
     props: ['isActive','cerrar','message', 'hayError'],
     template: `
@@ -18,11 +20,12 @@ const Notificacion = {
     `
 };
 
+// Lista de usuarios
 const MenuUsuarios = {
-    props: ['usuarios_conectados','usuarios_desconectados','cargarUsuarios'],
+    props: ['usuarios_conectados','usuarios_desconectados'],
     template: `
     <aside class="menu box">
-        <a class="menu-label" @click="cargarUsuarios">Usuarios</a>
+        <a class="menu-label">Usuarios</a>
         <p class="menu-label">Conectados</p>
         <ul class="menu-list" >
             <li v-for="usuario in usuarios_conectados">
@@ -49,22 +52,108 @@ const MenuUsuarios = {
     `
 };
 
+// Lista de Mensajes
 const VerMensajes = {
     props: ['mensajes','id_usuario','usuarios'],
     methods: {
+        // Para renderizar el username
+        mensaje_nombre_usuario : function(id) {
+            // Si estan cargados los usuarios
+            if (this.usuarios) {
+                // Busco el usuario por ID
+                const usuario = this.usuarios.find( u => u.id_usuario === id);
+                // Si existe imprime el Nombre de Usuario sino Anonimo
+                return usuario ? usuario.nombre_usuario : "Anonimo";
+            }
+            return "Anonimo";  
+        },
+        // Para renderizar el nombre 
         mensaje_nombre : function(id) {
-            return this.usuarios ? this.usuarios.find( u => u.id_usuario === id).nombre_usuario : "Anonimo";  
+            // Si estan cargados los usuarios
+            if (this.usuarios) {
+                // Busco el usuario por ID
+                const usuario = this.usuarios.find( u => u.id_usuario === id);
+                // Si existe imprime el Nombre de Usuario sino Anonimo
+                return usuario ? usuario.nombre : "-";
+            }
+            return "-";  
+        },
+        // Para renderizar el apellido
+        mensaje_apellido : function(id) {
+            // Si estan cargados los usuarios
+            if (this.usuarios) {
+                // Busco el usuario por ID
+                const usuario = this.usuarios.find( u => u.id_usuario === id);
+                // Si existe imprime el Nombre de Usuario sino Anonimo
+                return usuario ? usuario.apellido : "-";
+            }
+            return "-";  
+        },
+        // Para renderizar la fecha con el tiempo local
+        mensaje_creado: function(fecha) {
+            if (fecha) {
+                return new Date(fecha).toLocaleDateString();
+            }
+            return "YYYY-MM-DD"
+        }
+    },
+    computed: {
+        mensajes_ordenados: function() {
+            return this.mensajes.sort( (m1, m2) => m2.creado_en > m1.creado_en);
         }
     },
     template: `
         <ul>
-            <li v-for="mensaje in mensajes">
+            <!-- Itero sobre los mensajes -->
+            <li v-for="mensaje in mensajes_ordenados">
+                <!-- Mensaje -->
                 <article class="message" :class="{'is-primary':id_usuario == mensaje.id_usuario, 'is-warning': id_usuario != mensaje.id_usuario}">
+                    <!-- Titulo -->
                     <div class="message-header">
-                    <p>{{mensaje_nombre(mensaje.id_usuario)}}</p>
+                        <p>
+                            <!-- Nombre -->
+                            <span class="tags has-addons">
+                                <span class="tag is-dark">
+                                    <span class="icon is-small">
+                                        <i class="fas fa-user"></i>
+                                    </span>
+                                </span>
+                                <span class="tag is-link">{{mensaje_nombre(mensaje.id_usuario)}}</span>
+                                <span class="tag is-info">{{mensaje_apellido(mensaje.id_usuario)}}</span>
+                            </span>
+                        </p>
+                        <p> 
+                            <!-- Username -->
+                            <span class="tags has-addons">
+                                <span class="tag is-dark ">
+                                    <span class="icon is-small">
+                                        <i class="fas fa-at"></i>
+                                    </span>
+                                </span>
+                                <span class="tag is-danger">{{mensaje_nombre_usuario(mensaje.id_usuario)}}</span>
+                            </span>
+                        </p>
                     </div>
+                    <!-- Contenido -->
                     <div class="message-body">
-                    {{mensaje.cuerpo}}
+                        <!-- Mensaje -->
+                        <p class="content">{{mensaje.cuerpo}}</p>
+                        <nav class="level">
+                            <div class="level-left">
+                                <!-- Fecha de creación - VISTO o NO VISTO -->
+                                <div class="level-item">
+                                    <span class="tags has-addons">
+                                        <span class="tag is-dark ">
+                                            <span class="icon is-small">
+                                                <i class="fas fa-calendar"></i>
+                                            </span>
+                                        </span>
+                                        <span class="tag is-warning">{{mensaje_creado(mensaje.creado_en)}}</span>
+                                        <span class="tag is-info">{{mensaje.status}}</span>
+                                    </span>
+                                </div>
+                            </div>
+                        </nav>
                     </div>
                 </article>
             </li>
@@ -72,43 +161,83 @@ const VerMensajes = {
     `
 };
 
+// Para ingresar el mensaje a enviar
 const InputMensaje = {
-    props: ['id_usuario','cargarMensajes','socket'],
+    props: ['id_usuario','usuario','socket', "cargarMensajes"],
     data: function() {
         return ({
-            cuerpo: "",
-            url_mensaje : 'http://localhost:8000/mensaje'
+            cuerpo: ""
         })
     },
     methods: {
-        ingresarMensaje: async function () {
-
+        // Mandar un Mensaje
+        ingresarMensaje: function () {
+            // Le envia al websocket el evento y la info necesario
             this.socket.emit('manda_mensaje',{status:200, payload: {id_usuario: this.id_usuario, cuerpo: this.cuerpo}});
+            // Limpió el input
             this.cuerpo= "";
         }
     },
     template: `
     <article class="media">
+        <!-- Imagen -->
         <figure class="media-left">
             <p class="image is-64x64">
             <img class="is-rounded" src="images/Fizzmod-logo.png">
             </p>
         </figure>
+        <!-- Contenido -->
         <div class="media-content">
+            <!-- Input para el mensaje -->
             <div class="field">
                 <p class="control">
                     <textarea class="textarea is-medium" placeholder="Ingrese el Mensaje" v-model="cuerpo"></textarea>
                 </p>
             </div>
+            <!-- Barra inferior -->
             <nav class="level">
+                <!-- Nombre y Apellido del Usuario -->
                 <div class="level-left">
                     <div class="level-item">
-                        <button class="button is-primary" @click="ingresarMensaje">Mandar</button>
+                        <span class="tags has-addons">
+                            <span class="tag is-dark is-medium">
+                                <span class="icon is-small">
+                                    <i class="fas fa-user-secret"></i>
+                                </span>
+                            </span>
+                            <span class="tag is-primary is-medium">{{usuario.nombre}}</span>
+                            <span class="tag is-info is-medium">{{usuario.apellido}}</span>
+                        </span>
+                    </div>
+                    <!-- Username del Usuario -->
+                    <div class="level-item">
+                        <span class="tags has-addons">
+                            <span class="tag is-dark is-medium">
+                                <span class="icon is-small">
+                                    <i class="fas fa-at"></i>
+                                </span>
+                            </span>
+                            <span class="tag is-danger is-medium">{{usuario.nombre_usuario}}</span>
+                        </span>
                     </div>
                 </div>
                 <div class="level-right">
+                    <!-- Boton para Mandar el Mensaje -->
                     <div class="level-item">
-                        <button class="button is-warning" @click="cargarMensajes">Cargar Mensajes</button>
+                        <button class="button is-success" @click="ingresarMensaje" title="Enviar Mensaje">
+                            <span class="icon is-small">
+                                <i class="fas fa-paper-plane"></i>
+                            </span>
+                            <span>Enviar</span>
+                        </button>
+                    </div>
+                    <!-- Boton para Cargar los mensajes anteriores -->
+                    <div class="level-item">
+                        <button class="button is-warning" @click="cargarMensajes" title="Cargar todos los mensajes Historicos">
+                            <span class="icon is-small">
+                                <i class="fas fa-sync"></i>
+                            </span>
+                        </button>
                     </div>
                 </div>
             </nav>
@@ -117,6 +246,7 @@ const InputMensaje = {
     `
 }
 
+// Componente Principal
 const SignInCard= new Vue({
     el: "#chatBox",
     components : {
@@ -126,13 +256,7 @@ const SignInCard= new Vue({
         InputMensaje
     },
     data: {
-      url: 'http://localhost:8000/',
-      url_usuario : 'http://localhost:8000/usuario',
-      url_mensaje : 'http://localhost:8000/mensaje',
-      cardImage: "https://cdn.glitch.com/a519acdb-09ec-474c-8f97-89d4340a2a8d%2FdesafioFizzmod.jpg?1552268149070",
       socket: null,
-      dia: '2019-01-01',
-      hora: '00:00:00',
       id_usuario: null,
       usuario: {},
       usuarios: [],
@@ -142,10 +266,11 @@ const SignInCard= new Vue({
       notificacion_mensaje: ""
     },
     methods: {
+       // Para chequear que el usuario guardado exista en la base de datos
       estaRegistrado: async function () {
         let id = localStorage.getItem('id_usuario');
         if (id) {
-            const response = await fetch(`${this.url_usuario}?id=${id}`)
+            const response = await fetch(`${url}/usuario?id=${id}`)
             const {error, data} = await response.json();
             if (error){
                 console.error(error);
@@ -163,18 +288,9 @@ const SignInCard= new Vue({
         }
         return id;
       },
-      cargarUsuarios: async function() {
-        const raw = await fetch(`${this.url_usuario}`);
-        const {error, data} = await raw.json();
-        if (error) {
-            console.error(error);
-            this.activarNotificacion(`Error al cagar los usuarios: ${error}`,true);
-        } else {
-            this.usuarios = data.usuarios;
-        }
-      },
+      // Cargar Todos los mensajes
       cargarMensajes: async function() {
-        const raw = await fetch(`${this.url_mensaje}`);
+        const raw = await fetch(`${url}/mensaje`);
         const {error, data} = await raw.json();
         if (error) {
             console.error(error);
@@ -191,30 +307,48 @@ const SignInCard= new Vue({
       }
     },
     created () {
-        // Cuando cierra la pestaña o ventana que el usuario pase a desconectado
+        
+    },
+    mounted: function () {
+        // Conecta el socket
         this.socket= io(this.url);
-
+        // Cuando recibo un mensaje
         this.socket.on('nuevo_mensaje', ({status, payload}) => {
             if (status === 200) {
+                // Lo agrego a los otros mensajes cargados
                 this.mensajes.push(payload.mensaje);
-                // this.cargarMensajes();
             }
         })
 
-        this.socket.on('nuevo_usuario', ({status, payload}) => {
-            if (status === 200) {
-                const usuario = this.usuarios.find( u => u.id_usuario == payload.id_usuario);
-                if (usuario)
-                    usuario.status = "CONECTADO"
-            }
-        })
-
+        // Cuando este cliente confirma su conexión al chat
         this.socket.on('conecto_usuario', ({status, payload}) => {
             if (status === 200) {
+                // Carga los usuarios a la lista de usuarios
                 this.usuarios = payload.usuarios;
             }
         })
 
+        // Cuando se conecta un usuario
+        this.socket.on('nuevo_usuario', ({status, payload}) => {
+            if (status === 200) {
+                // Busco al usuario
+                const usuario = this.usuarios.find( u => u.id_usuario == payload.id_usuario);
+                // Si existe le cambio el estado
+                if (usuario)
+                    usuario.status = "CONECTADO"
+                else {
+                    // Si no existe lo busco y lo agrego
+                    fetch(`${url}/usuario?id=${payload.id_usuario}`)
+                        .then(response => response.json())
+                        .then(({data}) => {
+                            this.usuarios = data.usuario;
+                        })
+                        .catch(err => console.error(err));
+                }
+            }
+        })
+        
+        // Cuando se desconecta un usuario
         this.socket.on('desconecto_usuario', ({status, payload}) => {
             if (status === 200) {
                 const usuario = this.usuarios.find( usuario => usuario.id_usuario == payload.id_usuario)
@@ -222,38 +356,39 @@ const SignInCard= new Vue({
                     usuario.status = "DESCONECTADO"
             }
         })
-    },
-    mounted: function () {
 
-        this.dia = new Date().toISOString().split('T')[0];
-        this.hora = new Date().toISOString().split('T')[1].split('.')[0];
         this.estaRegistrado().then( id => {
             if (id) {
                 this.socket.emit('entra_usuario',{status:200, payload: {id_usuario: id}});
             }
         })
-
-        
-    },
-    computed: {
-        
     },
     template : `
       <div class="tile is-ancestor">
         <div class="tile is-vertical is-parent is-9">
+            <!-- Media con el Input para mandar mensajes -->
             <div class="tile is-child box">
-                <VerMensajes :mensajes="mensajes" :id_usuario="id_usuario" :usuarios="usuarios"/>
+                <InputMensaje 
+                    :id_usuario="id_usuario" 
+                    :usuario="usuario" 
+                    :socket="socket"
+                    :cargarMensajes="cargarMensajes" />
             </div>
+            <!-- Lista de Mensajes -->
             <div class="tile is-child box">
-                <InputMensaje :id_usuario="id_usuario" :cargarMensajes="cargarMensajes" :socket="socket" />
+                <VerMensajes 
+                    :mensajes="mensajes" 
+                    :id_usuario="id_usuario" 
+                    :usuarios="usuarios"/>
             </div>
         </div>
         <div class="tile is-3">
+            <!-- Lista de Usuarios -->
             <MenuUsuarios :usuarios_conectados="usuarios.filter(u => u.status === 'CONECTADO')" 
-                          :usuarios_desconectados="usuarios.filter(u => u.status === 'DESCONECTADO')" 
-                          :cargarUsuarios="cargarUsuarios" />
+                          :usuarios_desconectados="usuarios.filter(u => u.status === 'DESCONECTADO')" />
         </div>
-      <Notificacion :isActive="notificacion_activa" :message="notificacion_mensaje" :hayError="isError" :cerrar="activarNotificacion"/>
+        <!-- Notificaciones -->
+        <Notificacion :isActive="notificacion_activa" :message="notificacion_mensaje" :hayError="isError" :cerrar="activarNotificacion"/>
       </div>
     `
   });

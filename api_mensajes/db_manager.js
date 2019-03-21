@@ -61,7 +61,7 @@ module.exports = {
             // Si existe la Base de datos
             if (!conexion) err("No esta Conectado a una Base de Datos");
             // Busco en la base de datos, devuelvo la descripción del codigo de status
-            const QUERY_BUSCAR_TODOS = 'SELECT `id_mensaje`, m.`cuerpo`, m.`id_usuario`, m.`creado_en`, m.`actualizo_en`, s.`descripcion` AS "status" FROM `mensajes` m JOIN `status_mensajes` s ON s.id_status = m.id_status;'
+            const QUERY_BUSCAR_TODOS = 'SELECT `id_mensaje`, m.`cuerpo`, m.`id_usuario`, m.`creado_en`, m.`actualizo_en`, s.`descripcion` AS "status" FROM `mensajes` m JOIN `status_mensajes` s ON s.id_status = m.id_status ORDER BY `creado_en` ASC;'
             ejecutarQuery(conexion,QUERY_BUSCAR_TODOS)
                 .then(({status, resultados}) => {
                     if (status === 200) {
