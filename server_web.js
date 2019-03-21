@@ -80,6 +80,7 @@ io.on('connection', function(socket){
                     // Le aviso a los demas
                     socket.broadcast.emit('nuevo_mensaje',{status: 200, payload: { mensaje }});
                     console.log(`[WEB] SOCKET | ${fecha.dia} | ${fecha.hora}  | Usuario ${payload.id_usuario} mando un mensaje ID ${mensaje.id_mensaje}`);
+                    
             })
             .catch(err => {
                 // Le aviso a al cliente que no se pudo mandar un mensaje
@@ -88,7 +89,7 @@ io.on('connection', function(socket){
             })
     })
     // cuando se desconecta alguien
-    socket.on('disconnect', function(){
+    socket.on('disconnect', () => {
         if (socket.id_usuario) {
             // Hago el pedido al servidor de Usuarios que desconecte al socket que se fue
             fetch(`${user_url}?id=${socket.id_usuario}&status=-1`,{ method: 'PATCH'})

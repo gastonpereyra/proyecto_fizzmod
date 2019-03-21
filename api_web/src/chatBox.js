@@ -141,7 +141,6 @@ const VerMensajes = {
                                             </span>
                                         </span>
                                         <span class="tag is-warning">{{mensaje_creado(mensaje.creado_en)}}</span>
-                                        <span class="tag is-info">{{mensaje.status}}</span>
                                     </span>
                                 </div>
                             </div>
@@ -300,8 +299,11 @@ const SignInCard= new Vue({
       activarNotificacion: function (mensaje='', titulo='', hayError=false) {
         this.isError= hayError;
         this.notificacion_mensaje= mensaje;
-        this.notificacion_activa = !this.notificacion_activa;
-
+        this.notificacion_activa = true;
+      },
+      // Cerrar la notifiación
+      cerrarNotificacion: function () {
+        this.notificacion_activa = false;
       }
     },
     mounted: function () {
@@ -366,7 +368,7 @@ const SignInCard= new Vue({
     template : `
     <div>
       <!-- Notificaciones -->
-      <Notificacion :isActive="notificacion_activa" :message="notificacion_mensaje" :hayError="isError" :cerrar="activarNotificacion"/> 
+      <Notificacion :isActive="notificacion_activa" :message="notificacion_mensaje" :hayError="isError" :cerrar="cerrarNotificacion"/> 
       <div class="tile is-ancestor">
         
         <div class="tile is-vertical is-parent is-9">

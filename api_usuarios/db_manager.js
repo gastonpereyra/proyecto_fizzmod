@@ -46,7 +46,7 @@ module.exports = {
                 })
                 .then(({conexion}) => {
                     // Si creo el anterior registro o ya existe creo la ultima tabla
-                    const QUERY_CREAR_TABLA_USUARIOS ='CREATE TABLE IF NOT EXISTS `usuarios` ( `id_usuario` TINYINT UNSIGNED AUTO_INCREMENT NOT NULL UNIQUE, `nombre_usuario` VARCHAR(50) NOT NULL UNIQUE, `nombre` VARCHAR(50) NOT NULL, `apellido` VARCHAR(50) NOT NULL, `email` VARCHAR(60) NOT NULL UNIQUE, `creado_en` DATETIME NOT NULL DEFAULT NOW(), `actualizo_en` DATETIME NOT NULL DEFAULT NOW() ON UPDATE NOW(), `id_status` TINYINT NOT NULL DEFAULT 1, PRIMARY KEY(id_usuario), FOREIGN KEY(id_status) REFERENCES `status_usuarios`(id_status));'
+                    const QUERY_CREAR_TABLA_USUARIOS ='CREATE TABLE IF NOT EXISTS `usuarios` ( `id_usuario` TINYINT UNSIGNED AUTO_INCREMENT NOT NULL UNIQUE, `nombre_usuario` VARCHAR(20) NOT NULL UNIQUE, `nombre` VARCHAR(20) NOT NULL, `apellido` VARCHAR(20) NOT NULL, `email` VARCHAR(60) NOT NULL UNIQUE, `creado_en` DATETIME NOT NULL DEFAULT NOW(), `actualizo_en` DATETIME NOT NULL DEFAULT NOW() ON UPDATE NOW(), `id_status` TINYINT NOT NULL DEFAULT -1, PRIMARY KEY(id_usuario), FOREIGN KEY(id_status) REFERENCES `status_usuarios`(id_status));'
                     return ejecutarQuery(conexion,QUERY_CREAR_TABLA_USUARIOS);
                 }).then(({conexion}) => res({status: 200, mensaje: "Tablas creadas e inicializadas", conexion}))
 

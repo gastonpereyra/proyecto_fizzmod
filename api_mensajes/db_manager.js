@@ -47,7 +47,7 @@ module.exports = {
                 })
                 .then(({conexion}) => {
                     // Si creo el anterior registro o ya existe creo la ultima tabla
-                    const QUERY_CREAR_TABLA_MENSAJES ='CREATE TABLE IF NOT EXISTS `mensajes` ( `id_mensaje` MEDIUMINT UNSIGNED AUTO_INCREMENT NOT NULL UNIQUE, `cuerpo` TEXT NOT NULL, `creado_en` DATETIME NOT NULL DEFAULT NOW(),`actualizo_en` DATETIME NOT NULL DEFAULT NOW() ON UPDATE NOW(), `id_usuario` TINYINT UNSIGNED NOT NULL, `id_status` TINYINT NOT NULL DEFAULT 0, PRIMARY KEY(id_mensaje), FOREIGN KEY(id_status) REFERENCES `status_mensajes`(id_status));'
+                    const QUERY_CREAR_TABLA_MENSAJES ='CREATE TABLE IF NOT EXISTS `mensajes` ( `id_mensaje` MEDIUMINT UNSIGNED AUTO_INCREMENT NOT NULL UNIQUE, `cuerpo` VARCHAR(250) NOT NULL, `creado_en` DATETIME NOT NULL DEFAULT NOW(),`actualizo_en` DATETIME NOT NULL DEFAULT NOW() ON UPDATE NOW(), `id_usuario` TINYINT UNSIGNED NOT NULL, `id_status` TINYINT NOT NULL DEFAULT 0, PRIMARY KEY(id_mensaje), FOREIGN KEY(id_status) REFERENCES `status_mensajes`(id_status));'
                     return ejecutarQuery(conexion,QUERY_CREAR_TABLA_MENSAJES);
                 }).then(({conexion}) => res({status: 200, mensaje: "Tablas creadas e inicializadas", conexion}))
 
