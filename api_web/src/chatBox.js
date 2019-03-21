@@ -1,22 +1,13 @@
 const url= 'http://localhost:8000';
 
 const Notificacion = {
-    props: ['isActive','cerrar','message', 'hayError'],
+    props: ['isActive','cerrar','titulo','message', 'hayError'],
     template: `
-    <div class="modal" :class="{'is-active':isActive}">
-      <div class="modal-background"></div>
-      <div class="modal-content">
-        <div class="notification content has-text-centered" :class="{'is-danger':hayError, 'is-primary':!hayError}">
+        <div class="notification content has-text-centered" :class="{'is-danger':hayError, 'is-primary':!hayError}" v-show="isActive">
           <button class="delete" @click="cerrar"></button>
-          <span class="is-size-3">{{ hayError ? "Ups.. Hubo un Error" : "Bienvenido!!" }}</span>
+          <span class="is-size-3">{{ titulo }}</span>
           <p class="is-size-5">{{message}}</p>
-          <span class="buttons is-centered">
-              <a href="/registro" class="button is-light is-large">{{ hayError ? "Ir a Registrarse" : "Cambiar Perfil"}}</a>
-              <button @click="cerrar" class="button is-warning is-large">Quedarse</button>
-          </span>
         </div>
-      </div>
-    </div>
     `
 };
 
@@ -99,6 +90,7 @@ const VerMensajes = {
     },
     computed: {
         mensajes_ordenados: function() {
+            // Como los Tweets, el mas reciente primero
             return this.mensajes.sort( (m1, m2) => m2.creado_en > m1.creado_en);
         }
     },
@@ -268,22 +260,27 @@ const SignInCard= new Vue({
     methods: {
        // Para chequear que el usuario guardado exista en la base de datos
       estaRegistrado: async function () {
+          // Obtengo el ID del Local Storage
         let id = localStorage.getItem('id_usuario');
+        // Si existe
         if (id) {
+            // Busco si existe el usuario
             const response = await fetch(`${url}/usuario?id=${id}`)
             const {error, data} = await response.json();
+            // Hubo un error (no existe)
             if (error){
-                console.error(error);
+                // Pongo todo como nuevo
                 this.id_usuario= null;
                 this.usuario= {};
                 id= null;
                 localStorage.removeItem('id_usuario');
                 localStorage.removeItem('usuario');
-                this.activarNotificacion(`Problema con el usuario registrado: ${error}.`,true);
+                this.activarNotificacion(`Problema con el usuario registrado.`,'Hubo un Error',true);
             } else {
+                // Si salió todo bien
                 this.id_usuario = data.usuario.id_usuario;
                 this.usuario = data.usuario;
-                this.activarNotificacion(`${this.usuario.nombre} ${this.usuario.apellido} ha ingresado como ${this.usuario.nombre_usuario}`);
+                this.activarNotificacion(`${this.usuario.nombre} ${this.usuario.apellido} ha ingresado como ${this.usuario.nombre_usuario}`,'Bienvenido!!!');
             }
         }
         return id;
@@ -294,20 +291,18 @@ const SignInCard= new Vue({
         const {error, data} = await raw.json();
         if (error) {
             console.error(error);
-            this.activarNotificacion(`Error al cagar los mensajes: ${error}`,true);
+            this.activarNotificacion(`Error al cagar los mensajes`,'Ups..',true);
         } else {
             this.mensajes = data.mensajes;
         }
       },
-      activarNotificacion: function (mensaje='',hayError=false) {
+      // Manejar las notifiaciones
+      activarNotificacion: function (mensaje='', titulo='', hayError=false) {
         this.isError= hayError;
         this.notificacion_mensaje= mensaje;
         this.notificacion_activa = !this.notificacion_activa;
 
       }
-    },
-    created () {
-        
     },
     mounted: function () {
         // Conecta el socket
@@ -334,17 +329,20 @@ const SignInCard= new Vue({
                 // Busco al usuario
                 const usuario = this.usuarios.find( u => u.id_usuario == payload.id_usuario);
                 // Si existe le cambio el estado
-                if (usuario)
+                if (usuario) {
                     usuario.status = "CONECTADO"
-                else {
+                    this.activarNotificacion(`Ingreso un Usuario`, '') 
+                } else {
                     // Si no existe lo busco y lo agrego
                     fetch(`${url}/usuario?id=${payload.id_usuario}`)
                         .then(response => response.json())
                         .then(({data}) => {
                             this.usuarios = data.usuario;
+                            this.activarNotificacion(`Ingreso un Usuario`, '') 
                         })
-                        .catch(err => console.error(err));
+                        .catch(err => this.activarNotificacion(`Error al cargar Nuevo Usuario`, '', true) );
                 }
+                
             }
         })
         
@@ -352,11 +350,13 @@ const SignInCard= new Vue({
         this.socket.on('desconecto_usuario', ({status, payload}) => {
             if (status === 200) {
                 const usuario = this.usuarios.find( usuario => usuario.id_usuario == payload.id_usuario)
-                if (usuario)
+                if (usuario) {
                     usuario.status = "DESCONECTADO"
+                    this.activarNotificacion(`Se desconecto un Usuario`, '',true) 
+                }
             }
         })
-
+        // Me fijo si el usuario estaba logeado
         this.estaRegistrado().then( id => {
             if (id) {
                 this.socket.emit('entra_usuario',{status:200, payload: {id_usuario: id}});
@@ -364,7 +364,11 @@ const SignInCard= new Vue({
         })
     },
     template : `
+    <div>
+      <!-- Notificaciones -->
+      <Notificacion :isActive="notificacion_activa" :message="notificacion_mensaje" :hayError="isError" :cerrar="activarNotificacion"/> 
       <div class="tile is-ancestor">
+        
         <div class="tile is-vertical is-parent is-9">
             <!-- Media con el Input para mandar mensajes -->
             <div class="tile is-child box">
@@ -387,8 +391,7 @@ const SignInCard= new Vue({
             <MenuUsuarios :usuarios_conectados="usuarios.filter(u => u.status === 'CONECTADO')" 
                           :usuarios_desconectados="usuarios.filter(u => u.status === 'DESCONECTADO')" />
         </div>
-        <!-- Notificaciones -->
-        <Notificacion :isActive="notificacion_activa" :message="notificacion_mensaje" :hayError="isError" :cerrar="activarNotificacion"/>
+        
       </div>
-    `
+    </div>`
   });

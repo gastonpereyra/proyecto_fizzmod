@@ -2,7 +2,6 @@
 const server_web = require('http').createServer(manejarServerWeb);
 const io = require('socket.io')(server_web);
 const fetch = require('node-fetch');
-// const body_parser = require('../body_parser');
 const router = require('./api_web/router');
 const {server_host, server_web_port, getFecha} = require('./opciones');
 

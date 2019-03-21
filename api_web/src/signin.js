@@ -1,3 +1,5 @@
+const url = 'http://localhost:8000/usuario';
+
 const Notificacion = {
     props: ['isActive','cerrar','message', 'isError'],
     template: `
@@ -24,8 +26,6 @@ const SignInCard= new Vue({
         Notificacion
     },
     data: {
-      url : 'http://localhost:8000/usuario',
-      cardImage: "https://cdn.glitch.com/a519acdb-09ec-474c-8f97-89d4340a2a8d%2FdesafioFizzmod.jpg?1552268149070",
       id_usuario: null,
       nombre: "",
       apellido: "",
@@ -55,7 +55,7 @@ const SignInCard= new Vue({
       },
       ingresar: async function (e) {
         e.preventDefault();
-        const url = this.id_usuario ? `${this.url}?id=${this.id_usuario}` : `${this.url}`
+        const url = this.id_usuario ? `${url}?id=${this.id_usuario}` : `${url}`
         const nuevo_usuario={
             nombre: this.nombre,
             apellido: this.apellido,
@@ -72,7 +72,7 @@ const SignInCard= new Vue({
             const {error, data} = await response.json();
             if (error) {
                 this.isError = true;
-                this.notificacion_mensaje = `Se intento ingresar al sistema pero hubo el siguiente error: ${error}`;
+                this.notificacion_mensaje = `Se intento ingresar al sistema pero hubo el siguiente error`;
                 this.activarNotificacion();
             } else {
                 localStorage.setItem('id_usuario',data.usuario.id_usuario);
@@ -98,7 +98,7 @@ const SignInCard= new Vue({
     mounted: async function () {
         const id = localStorage.getItem('id_usuario');
         if (id) {
-            const response = await fetch(`${this.url}?id=${id}`)
+            const response = await fetch(`${url}?id=${id}`)
             const {error, data} = await response.json();
             if (error)
                 alert(error)
@@ -121,7 +121,7 @@ const SignInCard= new Vue({
           <div class="card">
             <div class="card-image">
               <figure class="image is-4by3">
-                <img :src="cardImage" alt="Card Image">
+                <img src="images/Fizzmod-desafio.jpg" alt="Card Image">
               </figure>
             </div>
             <div class="card-content">

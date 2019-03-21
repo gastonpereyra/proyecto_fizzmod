@@ -43,7 +43,7 @@ module.exports = async (req,res) => {
         // Pagina Principal
         case '/':
             res.writeHeader(200, "OK", {"Content-Type":"text/html"} );
-            fs.createReadStream(`${__dirname}/public/index.html`).pipe(res);
+            fs.createReadStream(`${__dirname}/public/registro.html`).pipe(res);
             break;
         // Cualquier otro tipo de archivo pedido
         default:
@@ -62,7 +62,7 @@ module.exports = async (req,res) => {
                 path= `/public${pathname}.html`;
             // Intento conectar con el archivo (o página) solicitada, si existe
             const solicitud = fs.createReadStream(`${__dirname}${path}`);
-            // res.writeHeader(200, "OK", {"Content-Type":"text/html"} );
+            
             // Si hay error
             solicitud.on('error', (err) => {
                 console.error(err.message);
