@@ -60,7 +60,7 @@ module.exports = async (req, res) => {
                     try {
                         const nuevo_usuario = await body_parser(req);
                         info_raw = await fetch(`${user_url}?id=${query.id}`,{ 
-                            method: 'PATH', 
+                            method: 'PATCH', 
                             body: JSON.stringify(nuevo_usuario), 
                             headers:{
                             'Content-Type': 'application/json'
